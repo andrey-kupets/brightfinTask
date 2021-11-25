@@ -7,6 +7,9 @@
     "eslint": "^8.3.0",
     "node-stream-zip": "^1.15.0"
   },
+  "scripts": {
+    "start": "node app"
+  },
   "devDependencies": {
     "eslint-config-airbnb-base": "^14.2.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
