@@ -4,9 +4,11 @@ const StreamZip = require('node-stream-zip');
 const fs = require('fs');
 const path = require('path');
 
-const { dataBuilder } = require('./utils');
-const { csvConfig } = require('./config');
+const { builder } = require('./utils');
+const { config } = require('./config');
 
+const outputDirPath = path.join(process.cwd(), 'outputData');
+const csvDataPath = path.join(outputDirPath, 'users.csv');
 const zipPath = path.join(process.cwd(), 'Test data.zip');
 
 const zip = new StreamZip({
@@ -20,14 +22,12 @@ zip.on('ready', () => {
     const fileInZip = path.join(entry.name);
     const fileContent = zip.entryDataSync(fileInZip).toString('utf8');
 
-    const outputDirPath = path.join(process.cwd(), 'outputData');
     if (!fs.existsSync(outputDirPath)) {
       fs.mkdir(outputDirPath, (err) => {
         console.log(err);
       });
     }
 
-    const csvDataPath = path.join(outputDirPath, 'users.csv');
     fs.appendFile(csvDataPath, fileContent, (err) => {
       console.log(err);
     });
@@ -35,11 +35,11 @@ zip.on('ready', () => {
     const readStream = fs.createReadStream(csvDataPath);
     const writeStream = fs.createWriteStream(path.join(outputDirPath, 'users.json'));
 
-    readStream.pipe(csv(csvConfig))
+    readStream.pipe(csv(config.csvConfig))
       .once('data', () => writeStream.write('['))
       .on('data', (chunk) => {
         const itemData = JSON.parse(chunk.toString());
-        const jsonItemData = dataBuilder(itemData);
+        const jsonItemData = builder.dataBuilder(itemData);
 
         writeStream.write(`${JSON.stringify(jsonItemData)},`);
       })
@@ -48,12 +48,12 @@ zip.on('ready', () => {
         console.log('Finish');
       })
       .then(() => {
-        // // optional
-        // fs.unlink(csvDataPath, (err) => {
-        //   if (err) console.log(err);
-        // });
       });
   }
+  // optional
+  fs.unlink(csvDataPath, (err) => {
+    if (err) console.log(err);
+  });
 
   // Do not forget to close the file once you're done
   zip.close();
